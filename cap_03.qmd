@@ -1,0 +1,233 @@
+---
+title: "Cap 3 - A Review of R Modeling Fundamentals"
+author: "Caio Sain Vallio"
+format: 
+    html:
+        self-contained: true
+        code-fold: true
+
+---
+
+
+
+# An Example
+
+```{r}
+#| message: false
+#| warning: false
+
+library(tidyverse)
+data(crickets, package = "modeldata")
+names(crickets)
+
+```
+
+
+```{r}
+#| label: fig-initial
+#| fig-cap: Relationship between chirp rate and temperature for two species of cricket.
+#| #| message: false
+#| warning: false
+
+# Plot the temperature on the x-axis, the chip rate the y-axis. The plot
+# elements will be colored differently for each species:
+ggplot(crickets, aes(x = temp, y = rate, color = species, pch = species, lty = species)) + 
+    # Plot points for each data point and color by species
+    geom_point(size = 2) +
+    # Show a simple linear model fit created separately for each species:
+    geom_smooth(method = lm, se = F, alpha = .0) + 
+    scale_color_brewer(palette = "Paired") +
+    labs(x = "Temperature (C)", y = "Chirp Rate (per minute)")
+
+```
+
+
+
+
+```{r}
+#| message: false
+#| warning: false
+
+interaction_fit <- lm(rate ~ (temp + species)^2, data = crickets)
+interaction_fit
+
+```
+
+
+
+```{r}
+#| label: fig-side_to_side
+#| fig-cap: Residual diagnostic plots for the linear model with interactions, which appear reasonable enough to conduct inferential analysis.
+
+#| message: false
+#| warning: false
+
+# Place two plots next to one another:
+par(mfrow = c(1, 2))
+
+# Show residuals versus predicted values:
+plot(interaction_fit, which = 1)
+
+# A normal quantile plot on the residuals:
+plot(interaction_fit, which = 2)
+
+```
+
+
+
+```{r}
+#| message: false
+#| warning: false
+
+# Fit a reduced model:
+main_effect_fit <- lm(rate ~ temp + species, data = crickets)
+
+# Compare the two:
+anova(main_effect_fit, interaction_fit)
+
+```
+
+
+This statistical test generates a p-value of 0.25. This implies that there is a
+lack of evidence against the null hypothesis that the interaction term is not
+needed by the model. For this reason, we will conduct further analysis on
+the model without the interaction.
+
+
+
+```{r}
+#| message: false
+#| warning: false
+
+summary(main_effect_fit)
+
+```
+
+
+
+```{r}
+#| message: false
+#| warning: false
+
+new_values <- data.frame(species = "O. exclamationis", temp = 15:20)
+predict(main_effect_fit, new_values)
+
+```
+
+
+# Why Tidiness Is Important for Modeling
+
+```{r}
+#| message: false
+#| warning: false
+
+# Add a missing value to the prediction set
+new_values$temp[1] <- NA
+
+# The predict method for `lm` defaults to `na.pass`:
+predict(main_effect_fit, new_values)
+
+# Alternatively
+# predict(main_effect_fit, new_values, na.action = na.fail)
+
+predict(main_effect_fit, new_values, na.action = na.omit)
+
+```
+
+
+```{r}
+#| message: false
+#| warning: false
+
+corr_res <- map(mtcars %>% select(-mpg), cor.test, y = mtcars$mpg)
+
+# The first of ten results in the vector:
+corr_res[[1]]
+
+```
+
+
+```{r}
+#| message: false
+#| warning: false
+
+library(broom)
+tidy(corr_res[[1]])
+
+```
+
+
+```{r}
+#| label: fig-correlation
+#| fig-cap: Correlations (and 95% confidence intervals) between predictors and the outcome in the mtcars data set
+#| message: false
+#| warning: false
+
+corr_res %>%
+    # Convert each to a tidy format; `map_dfr()` stacks the data frames
+    map_dfr(tidy, .id = "predictor") %>%
+    ggplot(aes(x = fct_reorder(predictor, estimate))) +
+    geom_point(aes(y = estimate)) +
+    geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = .1) +
+    labs(x = NULL, y = "Correlation with mpg")
+
+```
+
+
+# Combining Base R Models and the Tidyverse
+
+```{r}
+#| message: false
+#| warning: false
+
+split_by_species <-
+    crickets %>%
+    group_nest(species)
+
+split_by_species
+
+```
+
+
+```{r}
+#| message: false
+#| warning: false
+
+model_by_species <-
+    split_by_species %>%
+    mutate(model = map(data, ~ lm(rate ~ temp, data = .x)))
+model_by_species
+
+```
+
+
+```{r}
+#| message: false
+#| warning: false
+
+model_by_species %>%
+    mutate(coef = map(model, tidy)) %>%
+    select(species, coef) %>%
+    unnest(cols = c(coef))
+
+```
+
+
+# The tidymodels Metapackage
+
+```{r}
+library(tidymodels)
+```
+
+
+
+```{r}
+#| message: false
+#| warning: false
+
+
+```
+
+
+
+

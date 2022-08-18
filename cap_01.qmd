@@ -1,9 +1,0 @@
----
-title: "Cap 1 - Tidy Models"
-author: "Caio Sain Vallio"
-format: 
-    html:
-        self-contained: true
-
----
-
