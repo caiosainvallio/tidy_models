@@ -1,0 +1,91 @@
+---
+title: "Cap 7 - A Model Workflow"
+author: "Caio Sain Vallio"
+format: 
+    html:
+      toc: true
+      self-contained: true
+      code-fold: show
+execute: 
+  warning: false
+---
+
+
+# Workflow Basics
+
+```{r}
+library(tidymodels) # Includes the workflows package
+tidymodels_prefer()
+data(ames)
+
+ames <- ames %>% mutate(Sale_Price = log10(Sale_Price))
+set.seed(502)
+ames_split <- initial_split(ames, prop = 0.80, strata =
+Sale_Price)
+ames_train <- training(ames_split)
+ames_test <- testing(ames_split)
+
+lm_model <-
+  linear_reg() %>%
+  set_engine("lm")
+
+```
+
+```{r}
+lm_wflow <-
+  workflow() %>%
+  add_model(lm_model)
+
+lm_wflow
+
+```
+
+```{r}
+lm_wflow <-
+  lm_wflow %>%
+  add_formula(Sale_Price ~ Longitude + Latitude)
+
+lm_wflow
+```
+
+```{r}
+lm_fit <- fit(lm_wflow, ames_train)
+lm_fit
+```
+
+```{r}
+predict(lm_fit, ames_test %>% slice(1:3))
+```
+
+```{r}
+lm_fit %>% update_formula(Sale_Price ~ Longitude)
+```
+
+# Adding Raw Variables to the workflow()
+
+
+```{r}
+lm_wflow <-
+  lm_wflow %>%
+  remove_formula() %>%
+  add_variables(outcome = Sale_Price, 
+                predictors = c(Longitude, Latitude))
+                # predictors = c(ends_with("tude")))
+                # predictors = everything())
+
+lm_wflow
+
+```
+
+```{r}
+fit(lm_wflow, ames_train)
+```
+
+
+
+
+
+
+
+
+

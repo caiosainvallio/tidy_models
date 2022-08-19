@@ -6,6 +6,8 @@ format:
       toc: true
       self-contained: true
       code-fold: true
+execute: 
+  warning: false
 ---
 
 
