@@ -1,0 +1,19 @@
+---
+title: "Cap 6 - Fitting Models with parsnip"
+author: "Caio Sain Vallio"
+format: 
+    html:
+      toc: true
+      self-contained: true
+      code-fold: show
+---
+
+
+```{r}
+#| message: false
+#| warning: false
+
+data(ames, package = "modeldata")
+dim(ames)
+
+```

@@ -3,9 +3,9 @@ title: "Cap 3 - A Review of R Modeling Fundamentals"
 author: "Caio Sain Vallio"
 format: 
     html:
-        self-contained: true
-        code-fold: true
-
+      toc: true
+      self-contained: true
+      code-fold: true
 ---
 
 
